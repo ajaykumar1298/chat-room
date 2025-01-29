@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Private Chat</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      #messages {
+        list-style-type: none;
+        padding: 0;
+      }
+      #messages li {
+        padding: 8px;
+        background-color: #f0f0f0;
+        margin-bottom: 5px;
+      }
+      #message {
+        width: 80%;
+        padding: 10px;
+        margin-right: 10px;
+      }
+      #send-btn {
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+      #room-input {
+        width: 200px;
+        padding: 5px;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Private Chat</h1>
+    <input id="room-input" placeholder="Enter Room Name" />
+    <button id="join-room-btn">Join Room</button>
+    <ul id="messages"></ul>
+    <input id="message" autocomplete="off" />
+    <button id="send-btn">Send</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      let room = null;
+
+      // Join a room when the user clicks "Join Room"
+      document.getElementById("join-room-btn").onclick = () => {
+        room = document.getElementById("room-input").value;
+        if (room) {
+          socket.emit("join room", room); // Join the room
+          document.getElementById("room-input").disabled = true;
+          document.getElementById("join-room-btn").disabled = true;
+          console.log(`Joined room: ${room}`);
+        } else {
+          alert("Please enter a room name.");
+        }
+      };
+
+      // Send private message
+      document.getElementById("send-btn").onclick = () => {
+        const msg = document.getElementById("message").value;
+        if (msg && room) {
+          socket.emit("private message", { room, msg });
+          document.getElementById("message").value = ""; // Clear input
+        }
+      };
+
+      // Listen for private messages from the server
+      socket.on("private message", (msg) => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        document.getElementById("messages").appendChild(li);
+      });
+    </script>
+  </body>
+</html>
